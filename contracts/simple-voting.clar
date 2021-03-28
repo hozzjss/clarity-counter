@@ -104,7 +104,7 @@
     ) 
     (asserts! (is-eq creator tx-sender) (err ERROR-UNAUTHORIZED))
     (map-set wills {owner: owner} (merge will {is-dead: true}))
-    (nft-transfer? data owner contract-address (get beneficiary will))
+    (as-contract (nft-transfer? data owner tx-sender (get beneficiary will)))
     ))
 
 (define-public (set-beneficiary (beneficiary principal)) 
