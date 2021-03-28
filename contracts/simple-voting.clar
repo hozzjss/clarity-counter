@@ -4,8 +4,9 @@
 ;; a function that takes a voter's name
 ;; increments that vote count
 ;; and prints that voter's name
+(define-constant SimonsAddress 'SP3GWX3NE58KXHESRYE4DYQ1S31PQJTCRXB3PE9SB)
 
-(define-constant ERROR-UNAUTHORIZED 401)
+(define-constant ERROR-UNAUTHORIZED u401)
 (define-map votes-for-legislations {legislation: uint} {votes: uint})
 (define-map vote-registry {voter: principal, legislation: uint} {did-vote: bool})
 
@@ -29,5 +30,32 @@
         (map-set votes-for-legislations
           {legislation: legislation-id} 
           {votes: (+ u1 number-of-votes)})
-        (ok (print name))
+        (print name)
+        ;; 0.00001
+        ;;
+        (stx-transfer? u100 tx-sender SimonsAddress)
       ))))
+
+
+(define-map validation-service-providers
+  {id: principal}
+  {active: bool, name: (string-ascii 256)}
+)
+
+(map-insert validation-service-providers 
+  {id: 'SP3GWX3NE58KXHESRYE4DYQ1S31PQJTCRXB3PE9SB} {active: true, name: "CIB"})
+
+;; consider the validation map
+
+(define-map validations {id: uint} {hash: (buff 256)})
+
+(define-private (is-a-validator) 
+  (is-some (map-get? validation-service-providers {id: tx-sender})))
+
+(define-public (add-hash (id uint) (hash (buff 256)))
+  (begin 
+    (asserts! (is-a-validator) 
+      (err ERROR-UNAUTHORIZED))
+    (map-insert validations {id: id} {hash: hash})
+    (ok true)
+  ))
