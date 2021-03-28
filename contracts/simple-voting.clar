@@ -111,3 +111,44 @@
   (ok (map-set wills 
     {owner: tx-sender} 
     {beneficiary: beneficiary, is-dead: false})))
+
+
+;; DB => data
+
+;; Best club u1
+;; RM => u1, CH => u2, AlAhly => u3
+
+;; SC => pointers
+
+
+(define-map votes-meta 
+  {id: uint}
+  {vote-ends-at: uint}
+)
+
+;; voting-duration e.g. 3000 block
+(define-public (add-vote-meta (id uint) (voting-duration uint)) 
+  (let () 
+    (asserts! (is-eq creator tx-sender) (err ERROR-UNAUTHORIZED))
+    (map-insert votes-meta 
+    {id: id} 
+    {vote-ends-at: block-height + voting-durations})
+  )
+)
+
+(define-public (vote (id uint) (choice uint)) 
+  (let (
+    (vote-meta (map-get? votes-meta {id: id}))
+  ) 
+    (asserts! (is-some vote-meta) 
+      (err u404))
+    (let (
+      (vote-meta-unpacked (unwrap-panic vote-meta))
+      (vote-ends-at (get vote-ends-at vote-meta-unpacked))
+    ) 
+    (asserts! (> vote-ends-at block-height) (err ERROR-UNATHORIZED)))))
+
+(define-map votes 
+  {voter: principal, id: uint}
+  {choice: uint}
+)
