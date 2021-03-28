@@ -70,3 +70,44 @@
     (map-insert validations {id: id} {hash: hash})
     (ok true)
   ))
+
+
+;; legacy issue
+
+;; create account
+;; upload sensitive data
+;; assign beneficiary that would get data
+
+(define-non-fungible-token data principal)
+
+(define-map wills 
+  {owner: principal}
+  {beneficiary: principal, is-dead: bool}
+)
+
+(define-constant contract-address (as-contract tx-sender))
+
+
+(define-private (get-will (owner principal)) 
+  (unwrap-panic (map-get? wills {owner: owner})))
+
+(define-public (register-data-point (owner principal)) 
+  (begin 
+    (asserts! (is-eq creator tx-sender) (err ERROR-UNAUTHORIZED))
+    (nft-mint? data owner contract-address)
+  ))
+
+(define-public (mark-dead (owner principal)) 
+  (let
+    (
+      (will (get-will owner))
+    ) 
+    (asserts! (is-eq creator tx-sender) (err ERROR-UNAUTHORIZED))
+    (map-set wills {owner: owner} (merge will {is-dead: true}))
+    (nft-transfer? data owner contract-address (get beneficiary will))
+    ))
+
+(define-public (set-beneficiary (beneficiary principal)) 
+  (ok (map-set wills 
+    {owner: tx-sender} 
+    {beneficiary: beneficiary, is-dead: false})))
