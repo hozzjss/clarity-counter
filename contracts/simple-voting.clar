@@ -37,6 +37,8 @@
       ))))
 
 
+(define-constant creator tx-sender)
+
 (define-map validation-service-providers
   {id: principal}
   {active: bool, name: (string-ascii 256)}
@@ -44,6 +46,15 @@
 
 (map-insert validation-service-providers 
   {id: 'SP3GWX3NE58KXHESRYE4DYQ1S31PQJTCRXB3PE9SB} {active: true, name: "CIB"})
+
+(define-public (add-provider (address principal) (name (string-ascii 256))) 
+  (begin
+    (asserts! (is-eq creator tx-sender) (err ERROR-UNAUTHORIZED))
+    (ok 
+      (map-insert validation-service-providers 
+        {id: address} {active: true, name: name}))
+  ))
+
 
 ;; consider the validation map
 
