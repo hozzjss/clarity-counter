@@ -8,7 +8,11 @@ describe("counter contract test suite", () => {
       {
         principal: 'SP3GWX3NE58KXHESRYE4DYQ1S31PQJTCRXB3PE9SB',
         amount: 1e6
-      }
+      },
+      {
+        principal: 'ST11HGYVCVJ30Y8K7BEBHHZ52SFAV57095CEV4FQR',
+        amount: 1e6
+      },
     ]);
     wrappedSTXClient = new Client("SP3GWX3NE58KXHESRYE4DYQ1S31PQJTCRXB3PE9SB.wrapped-STX", "wrapped-STX", provider);
   });
@@ -84,6 +88,28 @@ describe("counter contract test suite", () => {
 
       
       assert.equal(balance, 0);
+    })
+    it("should show us its full name", async () => {
+      const query = wrappedSTXClient.createQuery({
+        method: {
+          name: 'get-name',
+          args: []
+        }
+      })
+
+      const receipt = await wrappedSTXClient.submitQuery(query);
+      assert.equal(Result.unwrap(receipt), '(ok "Wrapped-STX")')
+    })
+    it("should show us its symbol", async () => {
+      const query = wrappedSTXClient.createQuery({
+        method: {
+          name: 'get-symbol',
+          args: []
+        }
+      })
+
+      const receipt = await wrappedSTXClient.submitQuery(query);
+      assert.equal(Result.unwrap(receipt), '(ok "WSTX")')
     })
     // it("should decrement", async () => {
     //   await execMethod("decrement");
