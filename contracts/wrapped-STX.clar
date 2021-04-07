@@ -119,3 +119,17 @@
     (asserts! (is-eq tx-sender sender) (err u401))
     (ft-transfer? wrapped-stx amount sender recipient)
   ))
+
+(define-private (add-1 (n int)) (+ n 1))
+
+(fold + (map add-1 (list 1 2 3 4)) 1)
+
+
+;; {vote-id: uint, voter: principal}
+
+(define-read-only (get-single-vote (vote uint)) 
+  (map-get? votes {uuid: vote}))
+
+(define-read-only (get-votes (votes (list 1000 uint)))
+  (map get-single-vote votes)
+)

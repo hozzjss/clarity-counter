@@ -58,18 +58,48 @@
 
 ;; consider the validation map
 
-(define-map validations {id: uint} {hash: (buff 256)})
+(define-map validations {id: principal} {hash: (buff 256)})
 
 (define-private (is-a-validator) 
   (is-some (map-get? validation-service-providers {id: tx-sender})))
 
-(define-public (add-hash (id uint) (hash (buff 256)))
+(define-public (add-hash (id principal) (hash (buff 256)))
   (begin 
     (asserts! (is-a-validator) 
       (err ERROR-UNAUTHORIZED))
     (map-insert validations {id: id} {hash: hash})
     (ok true)
   ))
+
+;; As a user I could grant company Y access to my data within company X
+;; Ids:
+;; User: Principal
+;; Company: Principal
+
+(define-map access-log
+  {user: principal, recipient: principal, created-at: uint}
+  {granted: bool}
+)
+
+(define-public (grant-access (validator principal) (recipient principal)) 
+  (begin 
+    (asserts! (is-some (map-get? validations {id: tx-sender})) 
+      (err u401))
+    (map-set access-log 
+      {user: tx-sender, recipient: recipient, created-at: block-height}
+      {granted: false})
+    (ok true)))
+
+;; Always validate that the tx-sender
+;; is the (contract owner, the kyc holder)
+;; and validate that the request wasn't already granted
+(define-public (mark-access-granted (user principal) (recipient principal) (created-at uint)) 
+
+  (map-set 
+    {user: tx-sender, recipient: recipient, created-at: block-height}
+      {granted: true}))
+
+;; Mark access received
 
 
 ;; legacy issue
