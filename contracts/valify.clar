@@ -49,7 +49,7 @@
   (begin 
     (asserts! (is-some (map-get? validations {id: tx-sender, validator: validator})) 
       (err u401))
-    (map-set access-log 
+    (map-insert access-log 
       {user: tx-sender, recipient: recipient, created-at: block-height, validator:  validator}
       {granted: false, received: false})
     (ok true)))
@@ -84,17 +84,15 @@
 (define-public (mark-access-granted (user principal) (recipient principal) (created-at uint)) 
   (let
     (
+      (key {user: user, recipient: recipient, validator: tx-sender, created-at: created-at})
       (access-request
-        (unwrap! (map-get? access-log 
-          {user: user, recipient: recipient, validator: tx-sender, created-at: created-at}) 
+        (unwrap! (map-get? access-log key) 
           (err u404)))
     )
     (asserts! (not (get granted access-request))
       (err u401))
     (ok 
-      (map-set access-log
-        {user: user, recipient: recipient, created-at: block-height, validator: tx-sender}
-        (merge access-request {granted: true}))
+      (map-set access-log key (merge access-request {granted: true}))
       )))
 
 (define-public (mark-access-received (user principal) (validator principal) (created-at uint)) 
